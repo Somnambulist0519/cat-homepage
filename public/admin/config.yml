@@ -1,32 +1,25 @@
+# yaml-language-server: $schema=https://unpkg.com/@sveltia/cms/schema/sveltia-cms.json
+
 # ============================================================================
 # Sveltia CMS 配置（内容后台 /admin）
 # ----------------------------------------------------------------------------
 # 作用：让 fork 用户不改代码，在网页后台写文章 / 上传图片视频 / 管理作品。
-# 登录：GitHub OAuth（PKCE），无需自建认证服务器。
 # 访问：部署后打开 https://你的域名/admin
 #
-# ★ fork 后只需改一处：把下面的 <your-github-user> 和 <your-repo>
-#   换成你自己的 GitHub 用户名和仓库名（分支保持 main）。
+# ★ fork 后只需改一处：把下面的 repo 换成你自己的「用户名/仓库名」。
 # ============================================================================
 
 backend:
   name: github
   repo: Somnambulist0519/cat-homepage
   branch: main
-  base_url: https://github.com
-  auth_endpoint: login/oauth/authorize
 
 # 后台界面语言（中文）
 locale: zh
 
-# 媒体库：上传的图片/视频存到仓库 public/ 目录，网址直接以 / 开头引用
-media_library:
-  folder: /public
-  public_folder: ""
-  allowed_extensions: [jpg, jpeg, png, gif, webp, svg, mp4, webm, mov, mp3, pdf]
-
-# 自动生成摘要（可选）
-summary_length: 200
+# 媒体库：上传的图片/视频存到仓库 public/ 目录，网址以 / 开头引用
+media_folder: /public
+public_folder: ""
 
 collections:
   # ---------------------------------------------------------------- 文章
