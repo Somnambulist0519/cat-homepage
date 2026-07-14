@@ -8,7 +8,7 @@ export default defineAstroPaperConfig({
   //  - socials: 你的社交链接
   // ============================================================
   site: {
-    url: "https://your-domain.com/",
+    url: "https://somnambulist0519.github.io",
     title: "猫的主页",
     description: "用 Obsidian 写作、Astro 生成、腾讯云托管的小站。",
     author: "猫的主人",
@@ -30,16 +30,12 @@ export default defineAstroPaperConfig({
     showBackButton: true,
     editPost: {
       enabled: true,
-      url: "https://github.com/your-name/your-repo/edit/main/",
+      url: "https://github.com/Somnambulist0519/cat-homepage/edit/main/",
     },
     search: "pagefind",
   },
   socials: [
-    // 把 url 改成你自己的。可用图标：github / x / linkedin / mail / weibo / bilibili 等
-    { name: "github",   url: "https://github.com/your-name" },
-    { name: "x",        url: "https://x.com/your-name" },
-    { name: "linkedin", url: "https://www.linkedin.com/in/your-name/" },
-    { name: "mail",     url: "mailto:you@example.com" },
+    { name: "github",   url: "https://github.com/Somnambulist0519" },
   ],
   shareLinks: [
     { name: "whatsapp", url: "https://wa.me/?text=" },

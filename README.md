@@ -6,7 +6,7 @@
 - 🎨 **主题货架 + 搭建向导**：本地跑 `/setup`，像搭积木一样选主题（10 套）、开关功能块、调布局与视觉细节，右侧实时预览；读者前台只看成品，看不到搭建过程。
 - 📝 **两种写作方式**：用 **Obsidian** 直接改 `src/content/` 的 Markdown；或打开 `/admin` **网页后台**（Sveltia CMS）在线写文章、传图传视频、管作品，零后端。
 - 🎬 **正文媒体自动内嵌**：正文里单独一行贴视频链接，自动变播放器（B站 / YouTube / 腾讯云 COS 自托管）。
-- ☁️ **自建腾讯云**：静态产物部署到腾讯云 COS + CDN（备案后），数据/后台/域名全归你。
+- ☁️ **免费托管 · GitHub Pages**：push 即自动部署，无需备案、无需服务器。后续有域名可按需切过去。
 
 ---
 
@@ -39,9 +39,9 @@ npm run dev
 
 > `/setup` **仅本地开发可见**，生产构建自动隔离，读者前台访问会重定向到首页。
 
-### 第 ③ 步：部署到腾讯云 COS
+### 第 ③ 步：推到 GitHub 自动部署
 
-见下方第 4 节。推到 GitHub 后每次 `git push` 自动构建部署。
+推到 GitHub 后每次 `git push` 自动构建并发布到 `https://你的用户名.github.io/cat-homepage/`。见第 4 节。
 
 ---
 
@@ -66,7 +66,7 @@ tags: [随笔]
 
 ### 方式 B：网页后台 `/admin`（Sveltia CMS，推荐给非技术用户）
 
-部署后打开 `https://你的域名/admin`，用 GitHub 登录即可在网页写文章、上传图片/视频、管理作品——**无需改代码**。首次使用需一次性配置（见第 3 节）。
+部署后打开 `https://你的用户名.github.io/cat-homepage/admin`，用 GitHub 登录即可在网页写文章、上传图片/视频、管理作品——**无需改代码**。首次使用需一次性配置（见第 3 节）。
 
 三个内容集合：**文章**（`src/content/posts`）、**作品**（`src/content/works`）、**单页**（`src/content/pages`）。
 
@@ -77,9 +77,9 @@ tags: [随笔]
 Sveltia CMS 用 GitHub OAuth 登录，需你建一个 **GitHub OAuth App**（免费、无 secret 泄露风险，用 PKCE）：
 
 1. GitHub → **Settings → Developer settings → OAuth Apps → New OAuth App**：
-   - **Homepage URL**：`https://你的域名`
-   - **Authorization callback URL**：`https://你的域名/admin`
-2. 编辑 `public/admin/config.yml`，把 `repo` 改成你自己的仓库：
+   - **Homepage URL**：`https://你的用户名.github.io/cat-homepage`
+   - **Authorization callback URL**：`https://你的用户名.github.io/cat-homepage/admin`
+2. `public/admin/config.yml` 已配好 `repo` 字段，fork 后改成你自己的仓库即可：
 
    ```yaml
    backend:
@@ -88,24 +88,20 @@ Sveltia CMS 用 GitHub OAuth 登录，需你建一个 **GitHub OAuth App**（免
      branch: main
    ```
 
-3. 推送后访问 `https://你的域名/admin`，用 GitHub 授权即可开始写作。
+3. 推送后访问 `https://你的用户名.github.io/cat-homepage/admin`，用 GitHub 授权即可开始写作。
 
 > 上传的图片/视频会存进仓库 `public/` 目录，随内容一起提交。
 
 ---
 
-## 4. 部署到腾讯云 COS（自动）
+## 4. 部署到 GitHub Pages（自动）
 
-1. 仓库推到 GitHub，在 **Settings → Secrets and variables → Actions** 添加：
-   - `COS_SECRET_ID`、`COS_SECRET_KEY`（腾讯云访问密钥）
-   - `COS_BUCKET`（格式 `桶名-APPID`）、`COS_REGION`（如 `ap-guangzhou`）
-   - `SITE_BASE_URL`（你的域名，备案后填）
-2. 改 `astro-paper.config.ts` 的 `site.url` 为你的域名。
-3. 每次 `git push` 到 `main`，`.github/workflows/deploy.yml` 自动构建并上传到 COS。
+1. 把仓库推到 GitHub（仓库名建议 `cat-homepage`）。
+2. 仓库 **Settings → Pages → Build and deployment → Source** 选 **GitHub Actions**。
+3. 每次 `git push` 到 `main`，`.github/workflows/deploy-pages.yml` 自动构建并发布。
+4. 部署成功后访问 `https://你的用户名.github.io/cat-homepage/`。
 
-### 域名与备案
-- 域名需完成 **ICP 备案**（约 1–2 周）才能绑国内 CDN。备案期间可用 COS 默认地址验证。
-- 备案通过后：开启 CDN，把域名 CNAME 到 COS/CDN 地址，并在 `deploy.yml` 取消「CDN 刷新」注释。
+> 后续如果有备案域名，可在 `astro-paper.config.ts` 改 `site.url` + 去掉 `astro.config.ts` 的 `base`，再用 `deploy.yml` 切到腾讯云 COS。
 
 ---
 
@@ -129,7 +125,7 @@ https://你的COS域名/videos/demo.mp4
 - [Astro](https://astro.build) v7（静态生成）+ Tailwind CSS v4
 - 主题系统：`src/data/themes.ts`（预设库）+ `theme.config.ts`（激活配置，向导写入）
 - 内容后台：[Sveltia CMS](https://github.com/sveltia/sveltia-cms)（Git-based，零后端）
-- 部署：GitHub Actions → 腾讯云 COS（+ CDN）
+- 部署：GitHub Actions → GitHub Pages（免费，无需备案）
 
 ## License
 

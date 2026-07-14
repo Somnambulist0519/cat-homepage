@@ -11,8 +11,8 @@
 
 backend:
   name: github
-  repo: <your-github-user>/<your-repo>   # ← fork 后改成你的「用户名/仓库名」
-  branch: main                           # 内容写入的分支
+  repo: Somnambulist0519/cat-homepage
+  branch: main
   base_url: https://github.com
   auth_endpoint: login/oauth/authorize
 
