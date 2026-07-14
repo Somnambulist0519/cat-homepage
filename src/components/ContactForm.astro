@@ -1,0 +1,82 @@
+---
+/**
+ * ContactForm — UI complete, backend RESERVED.
+ *
+ * The form posts to `contact.endpoint` (from src/site.config.ts), which is
+ * empty by default. Until you wire it to Formspree or a Tencent Cloud SCF
+ * function, submissions are intercepted client-side and shown as a friendly
+ * "已预留" notice instead of erroring out.
+ */
+import { contact } from "@/site.config";
+
+const { endpoint, email, placeholder } = contact;
+---
+
+<form
+  id="contact-form"
+  class="max-w-xl space-y-4"
+  data-endpoint={endpoint}
+  data-reserved={endpoint ? "false" : "true"}
+>
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <input
+      name="name"
+      type="text"
+      required
+      placeholder={placeholder.name}
+      class="w-full rounded-card border border-border bg-background px-4 py-3 text-base outline-none focus:border-accent"
+    />
+    <input
+      name="email"
+      type="email"
+      required
+      placeholder={placeholder.email}
+      class="w-full rounded-card border border-border bg-background px-4 py-3 text-base outline-none focus:border-accent"
+    />
+  </div>
+  <textarea
+    name="message"
+    rows="4"
+    required
+    placeholder={placeholder.message}
+    class="w-full rounded-card border border-border bg-background px-4 py-3 text-base outline-none focus:border-accent"
+  ></textarea>
+  <div class="flex items-center gap-4">
+    <button
+      type="submit"
+      class="rounded-card bg-accent px-6 py-3 font-medium text-accent-foreground transition hover:opacity-90"
+    >
+      发送
+    </button>
+    <span id="contact-status" class="text-sm text-muted-foreground"></span>
+  </div>
+  <p class="text-xs text-muted-foreground">
+    或直接邮件：<a class="text-accent underline-offset-2 hover:underline" href={`mailto:${email}`}>{email}</a>
+  </p>
+</form>
+
+<script>
+  const form = document.getElementById("contact-form") as HTMLFormElement | null;
+  const status = document.getElementById("contact-status");
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const reserved = form.dataset.reserved === "true";
+    const endpoint = form.dataset.endpoint || "";
+    if (reserved) {
+      if (status) status.textContent = "后端接口已预留，暂未接入（可接 Formspree / 腾讯云 SCF）。";
+      return;
+    }
+    const data = Object.fromEntries(new FormData(form).entries());
+    try {
+      await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (status) status.textContent = "已发送，谢谢！";
+      form.reset();
+    } catch {
+      if (status) status.textContent = "发送失败，请稍后重试或直接邮件联系。";
+    }
+  });
+</script>

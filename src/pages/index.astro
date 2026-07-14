@@ -1,0 +1,151 @@
+---
+import { getCollection } from "astro:content";
+import { getRelativeLocaleUrl } from "astro:i18n";
+import IconArrowRight from "@/assets/icons/IconArrowRight.svg";
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import Socials from "@/components/Socials.astro";
+import Card from "@/components/Card.astro";
+import LinkButton from "@/components/LinkButton.astro";
+import VideoEmbed from "@/components/VideoEmbed.astro";
+import ContactForm from "@/components/ContactForm.astro";
+import { getSortedPosts } from "@/utils/getSortedPosts";
+import config from "@/config";
+import { site } from "@/site.config";
+import { getHomeWorks } from "@/utils/getWorks";
+import { resolveFeatures, widthClass } from "@/data/theme";
+
+const { socials, posts: postsConfig } = config;
+
+const locale = Astro.currentLocale ?? config.site.lang;
+
+const posts = await getCollection("posts");
+const sortedPosts = getSortedPosts(posts).filter(({ data }) => !data.draft);
+const recentPosts = sortedPosts.slice(0, postsConfig.perIndex);
+const homeWorks = await getHomeWorks();
+const homePath = getRelativeLocaleUrl(locale, "");
+const features = resolveFeatures(Astro.url.searchParams);
+const homeClass = widthClass("home", Astro.url.searchParams);
+---
+
+<Layout title={site.name} description={config.site.description}>
+  <Header />
+  <main id="main-content" data-layout="index" data-home-path={homePath} class={homeClass}>
+    {/* ---------------- Apple-style Hero ---------------- */}
+    {
+      features.showHero && (
+    <section id="hero" class="flex flex-col items-center pt-16 pb-12 text-center sm:pt-24 sm:pb-20">
+      <img
+        src={site.avatar}
+        alt={site.name}
+        width="112"
+        height="112"
+        class="mb-8 size-24 rounded-[28px] shadow-soft sm:size-28"
+        style="object-fit:cover"
+      />
+      <h1 class="text-4xl font-semibold tracking-tight sm:text-5xl">{site.name}</h1>
+      <p class="mt-3 text-lg text-muted-foreground">{site.tagline}</p>
+      <p class="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground">
+        {site.bio}
+      </p>
+      {
+        socials.length > 0 && (
+          <div class="mt-8">
+            <Socials />
+          </div>
+        )
+      }
+    </section>
+      )}
+
+    {/* ---------------- Recent writing ---------------- */}
+    {
+      recentPosts.length > 0 && (
+        <section id="recent-posts" class="border-border border-t pt-14 pb-6">
+          <h2 class="mb-8 text-2xl font-semibold tracking-tight">最新文章</h2>
+          <ul class="flex flex-col gap-2">
+            {recentPosts.map((data) => (
+              <Card variant="h3" {...data} />
+            ))}
+          </ul>
+          <div class="mt-8">
+            <LinkButton href={getRelativeLocaleUrl(locale, "posts")}>
+              查看全部文章
+              <IconArrowRight class="inline-block rtl:-rotate-180" />
+            </LinkButton>
+          </div>
+        </section>
+      )
+    }
+
+    {/* ---------------- Works preview ---------------- */}
+    {features.showWorks && (
+    <section id="works" class="border-border border-t pt-14 pb-6">
+      <h2 class="mb-2 text-2xl font-semibold tracking-tight">作品</h2>
+      <p class="mb-8 text-muted-foreground">一些我做过或正在做的东西。</p>
+      <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {
+          homeWorks.map((w) => (
+            <a
+              href={w.link}
+              target="_blank"
+              rel="noopener"
+              class="group block overflow-hidden rounded-card glass transition hover:-translate-y-0.5"
+            >
+              <img src={w.cover} alt={w.title} class="aspect-[16/10] w-full object-cover" />
+              <div class="p-5">
+                <h3 class="text-lg font-medium">{w.title}</h3>
+                <p class="mt-1.5 text-sm leading-relaxed text-muted-foreground">{w.description}</p>
+                <div class="mt-3 flex flex-wrap gap-2">
+                  {w.tags.map((tag) => (
+                    <span class="rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </a>
+          ))
+        }
+      </div>
+      <div class="mt-8">
+        <LinkButton href={getRelativeLocaleUrl(locale, "works")}>查看全部作品</LinkButton>
+      </div>
+    </section>
+      )}
+
+    {/* ---------------- Video placeholder (reserved) ---------------- */}
+    {features.showVideo && (
+    <section id="video" class="border-border border-t pt-14 pb-6">
+      <h2 class="mb-2 text-2xl font-semibold tracking-tight">视频</h2>
+      <p class="mb-8 text-muted-foreground">
+        预留位置：支持 B站 / YouTube 嵌入，或自托管到腾讯云 COS。后续在文章或此处接入即可。
+      </p>
+      <VideoEmbed />
+    </section>
+      )}
+
+    {/* ---------------- Contact / subscribe (UI only, backend reserved) ---------------- */}
+    {features.showContact && (
+    <section id="contact" class="border-border border-t pt-14 pb-4">
+      <h2 class="mb-2 text-2xl font-semibold tracking-tight">联系 / 订阅</h2>
+      <p class="mb-8 max-w-xl text-muted-foreground">
+        留下你的邮箱或留言，我会通过邮件回复。表单后端已预留接口，可接 Formspree 或腾讯云 SCF。
+      </p>
+      <ContactForm />
+    </section>
+      )}
+  </main>
+  <Footer />
+</Layout>
+
+<script>
+  document.addEventListener("astro:page-load", () => {
+    const indexLayout = (document.querySelector("#main-content") as HTMLElement)?.dataset;
+    const baseRoot = import.meta.env.BASE_URL.replace(/\/?$/, "/");
+    if (indexLayout?.layout) {
+      sessionStorage.setItem("backUrl", indexLayout.homePath ?? baseRoot);
+    }
+  });
+</script>

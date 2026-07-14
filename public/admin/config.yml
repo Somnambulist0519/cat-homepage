@@ -1,0 +1,154 @@
+# ============================================================================
+# Sveltia CMS 配置（内容后台 /admin）
+# ----------------------------------------------------------------------------
+# 作用：让 fork 用户不改代码，在网页后台写文章 / 上传图片视频 / 管理作品。
+# 登录：GitHub OAuth（PKCE），无需自建认证服务器。
+# 访问：部署后打开 https://你的域名/admin
+#
+# ★ fork 后只需改一处：把下面的 <your-github-user> 和 <your-repo>
+#   换成你自己的 GitHub 用户名和仓库名（分支保持 main）。
+# ============================================================================
+
+backend:
+  name: github
+  repo: <your-github-user>/<your-repo>   # ← fork 后改成你的「用户名/仓库名」
+  branch: main                           # 内容写入的分支
+  base_url: https://github.com
+  auth_endpoint: login/oauth/authorize
+
+# 后台界面语言（中文）
+locale: zh
+
+# 媒体库：上传的图片/视频存到仓库 public/ 目录，网址直接以 / 开头引用
+media_library:
+  folder: /public
+  public_folder: ""
+  allowed_extensions: [jpg, jpeg, png, gif, webp, svg, mp4, webm, mov, mp3, pdf]
+
+# 自动生成摘要（可选）
+summary_length: 200
+
+collections:
+  # ---------------------------------------------------------------- 文章
+  - name: posts
+    label: 文章
+    label_singular: 文章
+    folder: src/content/posts
+    slug: "{{slug}}"
+    create: true
+    delete: true
+    editor:
+      preview: true
+    fields:
+      - name: title
+        label: 标题
+        widget: string
+      - name: description
+        label: 摘要
+        widget: text
+      - name: pubDatetime
+        label: 发布时间
+        widget: datetime
+        time_format: HH:mm
+        format: YYYY-MM-DDTHH:mm
+        required: true
+      - name: modDatetime
+        label: 修改时间
+        widget: datetime
+        time_format: HH:mm
+        format: YYYY-MM-DDTHH:mm
+        required: false
+      - name: author
+        label: 作者
+        widget: string
+        required: false
+      - name: tags
+        label: 标签
+        widget: list
+        required: false
+      - name: draft
+        label: 草稿（不发布）
+        widget: boolean
+        required: false
+        default: false
+      - name: featured
+        label: 首页精选
+        widget: boolean
+        required: false
+        default: false
+      - name: ogImage
+        label: 社交分享图
+        widget: image
+        required: false
+      - name: body
+        label: 正文
+        widget: markdown
+
+  # ---------------------------------------------------------------- 作品
+  - name: works
+    label: 作品
+    label_singular: 作品
+    folder: src/content/works
+    slug: "{{slug}}"
+    create: true
+    delete: true
+    editor:
+      preview: true
+    fields:
+      - name: title
+        label: 标题
+        widget: string
+      - name: description
+        label: 一句话简介
+        widget: text
+        required: false
+      - name: link
+        label: 外链地址
+        widget: string
+        required: false
+      - name: cover
+        label: 封面图
+        widget: image
+        required: false
+      - name: tags
+        label: 标签
+        widget: list
+        required: false
+      - name: weight
+        label: 排序权重（越小越靠前）
+        widget: number
+        required: false
+      - name: showInHome
+        label: 在首页作品墙展示
+        widget: boolean
+        required: false
+        default: true
+      - name: body
+        label: 详情（可选）
+        widget: markdown
+
+  # ---------------------------------------------------------------- 单页
+  - name: pages
+    label: 单页
+    label_singular: 单页
+    folder: src/content/pages
+    slug: "{{slug}}"
+    create: true
+    delete: true
+    editor:
+      preview: true
+    fields:
+      - name: title
+        label: 标题
+        widget: string
+      - name: description
+        label: 摘要
+        widget: text
+        required: false
+      - name: ogImage
+        label: 社交分享图
+        widget: image
+        required: false
+      - name: body
+        label: 正文
+        widget: markdown

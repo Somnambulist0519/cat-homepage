@@ -1,0 +1,93 @@
+@import "tailwindcss";
+@import "./theme.css";
+@import "./typography.css";
+@import "rehype-callouts/theme/obsidian";
+
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+@layer base {
+  * {
+    @apply border-border outline-accent/75;
+    scrollbar-width: auto;
+    scrollbar-color: var(--color-muted) transparent;
+  }
+  a,
+  button {
+    @apply outline-accent outline-offset-1 focus-visible:no-underline focus-visible:outline-2 focus-visible:outline-dashed;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  /* Apple-style: smooth, no-flash theme transition + restrained feedback */
+  html {
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
+    scroll-behavior: smooth;
+  }
+  body {
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    /* Layered background: your image (if set) over a soft gradient placeholder.
+       Fixed attachment gives subtle parallax; glass cards blur what's behind. */
+    background-image: var(--bg-image), var(--bg-gradient);
+    background-size: cover, cover;
+    background-position: center center, center center;
+    background-repeat: no-repeat, no-repeat;
+    background-attachment: fixed, fixed;
+  }
+  a,
+  button,
+  [role="button"] {
+    transition:
+      opacity 0.2s ease,
+      color 0.2s ease,
+      transform 0.2s ease,
+      background-color 0.2s ease;
+  }
+  /* Hover feedback stays soft and minimal — no bounce, no glow */
+  a:hover,
+  button:hover:not(:disabled) {
+    opacity: 0.85;
+  }
+}
+
+@utility max-w-app {
+  @apply max-w-3xl;
+}
+
+@utility app-layout {
+  @apply max-w-app mx-auto w-full px-4;
+}
+
+/* Wide container for landing & works (more open, full-bleed feel) */
+@utility app-wide {
+  @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
+}
+
+/* Reading container for article pages (comfortable line length + sidebar) */
+@utility app-read {
+  @apply mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8;
+}
+
+/* Glassmorphism surface: translucent + frosted blur + hairline border */
+@utility glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+@utility active-nav {
+  @apply underline decoration-wavy decoration-2 underline-offset-8;
+}
+
+:target {
+  scroll-margin-block: 1rem;
+}

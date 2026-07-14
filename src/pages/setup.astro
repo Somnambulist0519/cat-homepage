@@ -1,0 +1,359 @@
+---
+import "@/styles/global.css";
+import { themes } from "@/data/themes";
+import { themeConfig } from "@/data/theme.config";
+
+// 生产环境不暴露向导：重定向回首页
+if (import.meta.env.PROD) {
+  return Astro.redirect("/");
+}
+
+// 主题货架缩略信息（含亮色 bg/accent 用于色卡）
+const shelf = themes.map((t) => ({
+  id: t.id,
+  name: t.name,
+  desc: t.desc,
+  bg: t.light.background,
+  accent: t.light.accent,
+  glass: t.flags.glass,
+}));
+
+const current = {
+  theme: themeConfig.theme,
+  accent: themeConfig.accent || "#4a6b8f",
+  radius: themeConfig.radius ?? 16,
+  glass: themeConfig.glass === null ? true : themeConfig.glass,
+  font: "",
+  features: { ...themeConfig.features },
+  layout: { ...themeConfig.layout },
+};
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>搭建向导 · /setup</title>
+    <style is:inline>
+      /* 向导自身的强调色（站点主题变量在此页未注入） */
+      :root {
+        --accent: #4a6b8f;
+        --accent-foreground: #ffffff;
+      }
+    </style>
+  </head>
+  <body class="bg-neutral-100 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
+    <div class="flex h-screen">
+      <!-- 左：配置面板 -->
+      <aside
+        class="w-80 shrink-0 space-y-6 overflow-y-auto border-r border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900"
+      >
+        <div>
+          <h1 class="text-lg font-semibold">搭建向导</h1>
+          <p class="mt-1 text-xs text-neutral-500">
+            仅本地开发可见，读者前台看不到。改完点「保存配置」。
+          </p>
+        </div>
+
+        <!-- 主题货架 -->
+        <section>
+          <h2 class="mb-2 text-sm font-medium text-neutral-500">主题货架</h2>
+          <div id="shelf" class="grid grid-cols-2 gap-2"></div>
+          <script type="application/json" id="shelf-data" is:inline set:html={JSON.stringify(shelf)}></script>
+        </section>
+
+        <!-- 视觉细节 -->
+        <section class="space-y-3">
+          <h2 class="text-sm font-medium text-neutral-500">视觉细节</h2>
+          <div>
+            <span class="mb-1 block text-xs">卡片样式</span>
+            <div class="flex gap-2" id="glass-group">
+              <button data-glass="1" class="glass-btn flex-1 rounded-md border px-2 py-1 text-sm">玻璃</button>
+              <button data-glass="0" class="glass-btn flex-1 rounded-md border px-2 py-1 text-sm">扁平</button>
+            </div>
+          </div>
+          <div>
+            <label class="mb-1 block text-xs">强调色</label>
+            <input type="color" id="accent" class="h-8 w-full cursor-pointer rounded border" />
+          </div>
+          <div>
+            <label class="mb-1 block text-xs">圆角：<span id="radius-val">16</span>px</label>
+            <input type="range" id="radius" min="0" max="32" class="w-full" />
+          </div>
+          <div>
+            <label class="mb-1 block text-xs">字体</label>
+            <select id="font" class="w-full rounded-md border px-2 py-1 text-sm">
+              <option value="">系统默认</option>
+              <option value="serif">衬线（杂志/国风）</option>
+              <option value="mono">等宽（极客）</option>
+            </select>
+          </div>
+        </section>
+
+        <!-- 布局宽度 -->
+        <section class="space-y-3">
+          <h2 class="text-sm font-medium text-neutral-500">布局宽度</h2>
+          <div>
+            <label class="mb-1 block text-xs">首页 / 作品页</label>
+            <div class="flex gap-2" id="home-group">
+              <button data-home="wide" class="flex-1 rounded-md border px-2 py-1 text-sm">宽</button>
+              <button data-home="normal" class="flex-1 rounded-md border px-2 py-1 text-sm">标准</button>
+            </div>
+          </div>
+          <div>
+            <label class="mb-1 block text-xs">文章正文</label>
+            <div class="flex gap-2" id="article-group">
+              <button data-article="read" class="flex-1 rounded-md border px-2 py-1 text-sm">阅读</button>
+              <button data-article="wide" class="flex-1 rounded-md border px-2 py-1 text-sm">宽</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 功能块 -->
+        <section>
+          <h2 class="mb-2 text-sm font-medium text-neutral-500">功能块</h2>
+          <div id="features" class="space-y-1.5"></div>
+        </section>
+
+        <!-- 预览目标 -->
+        <section>
+          <label class="mb-1 block text-xs text-neutral-500">预览页面</label>
+          <select id="preview-target" class="w-full rounded-md border px-2 py-1 text-sm">
+            <option value="/">首页</option>
+            <option value="/posts/welcome">文章页</option>
+            <option value="/works">作品页</option>
+          </select>
+        </section>
+
+        <!-- 操作 -->
+        <section class="flex gap-2 pt-2">
+          <button id="save" class="flex-1 rounded-md bg-accent px-3 py-2 text-sm font-medium text-accent-foreground">保存配置</button>
+          <button id="reset" class="rounded-md border px-3 py-2 text-sm">重置</button>
+        </section>
+        <p id="status" class="text-xs text-emerald-600"></p>
+      </aside>
+
+      <!-- 右：实时预览 -->
+      <main class="flex-1 bg-neutral-200 dark:bg-neutral-900">
+        <iframe id="preview" class="h-full w-full border-0" src="/"></iframe>
+      </main>
+    </div>
+
+    <script is:inline define:vars={{ current }}>
+      const FONTS = {
+        "": "",
+        serif:
+          'Georgia, "Songti SC", "SimSun", "Noto Serif SC", "Times New Roman", serif',
+        mono:
+          'ui-monospace, "JetBrains Mono", "SF Mono", Menlo, Consolas, "Liberation Mono", monospace',
+      };
+
+      const LABELS = {
+        showHero: "首页 Hero",
+        showWorks: "作品墙",
+        showVideo: "视频区",
+        showContact: "联系/订阅",
+        showSearch: "站内搜索",
+        showToc: "文章目录",
+        showAuthorCard: "作者卡片",
+        showTags: "标签",
+        showArchives: "归档",
+        showRSS: "RSS",
+      };
+
+      const state = JSON.parse(JSON.stringify(current));
+      state.previewTarget = "/";
+
+      const $ = (s) => document.querySelector(s);
+      const shelf = JSON.parse(document.getElementById("shelf-data").textContent);
+      const shelfEl = $("#shelf");
+      const featuresEl = $("#features");
+      const preview = $("#preview");
+
+      // 渲染主题货架
+      shelf.forEach((t) => {
+        const b = document.createElement("button");
+        b.className =
+          "theme-btn group flex flex-col items-start rounded-lg border p-2 text-left transition hover:border-accent";
+        b.dataset.id = t.id;
+        b.innerHTML = `
+          <span class="mb-1.5 h-8 w-full rounded-md border" style="background:${t.bg};border-color:${t.accent}33">
+            <span class="ms-1.5 mt-1.5 inline-block h-2.5 w-2.5 rounded-full" style="background:${t.accent}"></span>
+          </span>
+          <span class="text-xs font-medium">${t.name}</span>`;
+        b.addEventListener("click", () => {
+          state.theme = t.id;
+          syncControls();
+          render();
+        });
+        shelfEl.appendChild(b);
+      });
+
+      // 渲染功能块开关
+      Object.keys(LABELS).forEach((k) => {
+        const id = `feat-${k}`;
+        const wrap = document.createElement("label");
+        wrap.className = "flex cursor-pointer items-center justify-between text-sm";
+        wrap.innerHTML = `<span>${LABELS[k]}</span>
+          <input type="checkbox" id="${id}" class="h-4 w-4 accent-[var(--color-accent)]" />`;
+        const cb = wrap.querySelector("input");
+        cb.checked = !!state.features[k];
+        cb.addEventListener("change", () => {
+          state.features[k] = cb.checked;
+          render();
+        });
+        featuresEl.appendChild(wrap);
+      });
+
+      // 单选组（玻璃 / 布局），用 setter 写入正确字段
+      function bindGroup(sel, attr, setter) {
+        document.querySelectorAll(`${sel} button`).forEach((btn) => {
+          btn.addEventListener("click", () => {
+            setter(btn.dataset[attr]);
+            syncControls();
+            render();
+          });
+        });
+      }
+      bindGroup("#glass-group", "glass", (v) => {
+        state.glass = v === "1";
+      });
+      bindGroup("#home-group", "home", (v) => {
+        state.layout.homeWidth = v;
+      });
+      bindGroup("#article-group", "article", (v) => {
+        state.layout.articleWidth = v;
+      });
+
+      // 其他输入
+      $("#accent").addEventListener("input", (e) => {
+        state.accent = e.target.value;
+        render();
+      });
+      $("#radius").addEventListener("input", (e) => {
+        state.radius = Number(e.target.value);
+        $("#radius-val").textContent = e.target.value;
+        render();
+      });
+      $("#font").addEventListener("change", (e) => {
+        state.font = e.target.value;
+        render();
+      });
+      $("#preview-target").addEventListener("change", (e) => {
+        state.previewTarget = e.target.value;
+        render();
+      });
+
+      // 把 state 同步到控件高亮
+      function syncControls() {
+        document.querySelectorAll(".theme-btn").forEach((b) => {
+          const on = b.dataset.id === state.theme;
+          b.classList.toggle("border-accent", on);
+          b.classList.toggle("ring-1", on);
+          b.classList.toggle("ring-accent", on);
+        });
+        document.querySelectorAll("#glass-group button").forEach((b) => {
+          const on = (b.dataset.glass === "1") === state.glass;
+          b.classList.toggle("bg-accent", on);
+          b.classList.toggle("text-accent-foreground", on);
+        });
+        document
+          .querySelectorAll("#home-group button")
+          .forEach((b) =>
+            b.classList.toggle(
+              "bg-accent",
+              b.dataset.home === state.layout.homeWidth,
+            ),
+          );
+        document
+          .querySelectorAll("#article-group button")
+          .forEach((b) =>
+            b.classList.toggle(
+              "bg-accent",
+              b.dataset.article === state.layout.articleWidth,
+            ),
+          );
+        $("#accent").value = state.accent;
+        $("#radius").value = state.radius;
+        $("#radius-val").textContent = state.radius;
+        $("#font").value = state.font;
+        Object.keys(LABELS).forEach((k) => {
+          $("#feat-" + k).checked = !!state.features[k];
+        });
+      }
+
+      // 构建预览 URL（把 state 编码进查询参数）
+      function buildUrl() {
+        const p = new URLSearchParams();
+        p.set("preview", state.theme);
+        p.set("glass", state.glass ? "1" : "0");
+        p.set("accent", state.accent);
+        p.set("radius", String(state.radius));
+        const fs = FONTS[state.font] || "";
+        if (fs) {
+          p.set("fontBody", fs);
+          p.set("fontHeading", fs);
+        }
+        p.set("home", state.layout.homeWidth);
+        p.set("article", state.layout.articleWidth);
+        const enabled = Object.keys(LABELS).filter((k) => state.features[k]);
+        p.set("f", enabled.join(","));
+        return state.previewTarget + "?" + p.toString();
+      }
+
+      let lastUrl = "";
+      function render() {
+        const url = buildUrl();
+        if (url !== lastUrl) {
+          preview.src = url;
+          lastUrl = url;
+        }
+      }
+
+      // 保存 / 重置
+      $("#save").addEventListener("click", async () => {
+        const status = $("#status");
+        status.textContent = "保存中…";
+        const payload = {
+          theme: state.theme,
+          accent: state.accent,
+          radius: state.radius,
+          fontBody: FONTS[state.font] || "",
+          fontHeading: FONTS[state.font] || "",
+          glass: state.glass,
+          features: state.features,
+          layout: state.layout,
+        };
+        try {
+          const r = await fetch("/api/setup", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const j = await r.json();
+          status.textContent = j.ok
+            ? "已保存 ✓（重新构建后生效）"
+            : "保存失败：" + (j.error || r.status);
+        } catch (e) {
+          status.textContent = "保存失败：" + e;
+        }
+      });
+
+      $("#reset").addEventListener("click", () => {
+        Object.assign(state, JSON.parse(JSON.stringify(current)));
+        state.previewTarget = preview.src.includes("/posts")
+          ? "/posts/welcome"
+          : preview.src.includes("/works")
+            ? "/works"
+            : "/";
+        syncControls();
+        render();
+        $("#status").textContent = "已重置为保存的配置";
+      });
+
+      syncControls();
+      render();
+    </script>
+  </body>
+</html>

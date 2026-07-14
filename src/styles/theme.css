@@ -1,0 +1,39 @@
+/* ============================================================
+   设计令牌映射（Tailwind v4）
+   ------------------------------------------------------------
+   注意：所有"颜色 / 玻璃 / 背景渐变 / 圆角 / 阴影 / 字体"的
+   实际取值，由 src/data/theme.config.ts + Layout.astro 在构建期
+   通过 CSS 变量注入（单一来源）。本文件只做「Tailwind 键 → 变量」
+   的映射，不写死任何颜色，保证切换主题零副作用。
+   ============================================================ */
+@theme inline {
+  /* 颜色 → 主题变量 */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-card: var(--card);
+
+  /* 字体 → 主题变量 */
+  --font-app: var(--font-body-tk);
+
+  /* 圆角 → 主题变量 */
+  --radius-sm: var(--r-sm);
+  --radius-card: var(--r-card);
+  --radius-lg: var(--r-lg);
+
+  /* 阴影 → 主题变量 */
+  --shadow-soft: var(--sh-soft);
+  --shadow-card: var(--sh-card);
+}
+
+/* 标题使用主题指定的标题字体（serif / 系统等由主题决定） */
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-heading-tk);
+}

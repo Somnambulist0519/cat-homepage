@@ -1,0 +1,45 @@
+---
+import config from "@/config";
+import { site } from "@/site.config";
+import Socials from "@/components/Socials.astro";
+
+const socials = config.socials;
+---
+
+<aside
+  class="rounded-card glass p-5"
+  aria-label="关于作者"
+>
+  <div class="flex flex-col items-center text-center">
+    <img
+      src={site.avatar}
+      alt={site.name}
+      width="72"
+      height="72"
+      class="size-[72px] rounded-[18px] shadow-soft object-cover"
+      style="object-fit:cover"
+    />
+    <h3 class="mt-3 text-base font-medium tracking-tight">{site.name}</h3>
+    {
+      site.tagline && (
+        <p class="mt-1 text-sm text-muted-foreground">{site.tagline}</p>
+      )
+    }
+  </div>
+
+  {
+    site.bio && (
+      <p class="mt-3 text-center text-sm leading-relaxed text-muted-foreground">
+        {site.bio}
+      </p>
+    )
+  }
+
+  {
+    socials.length > 0 && (
+      <div class="mt-4 flex justify-center">
+        <Socials />
+      </div>
+    )
+  }
+</aside>
